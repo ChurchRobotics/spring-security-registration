@@ -2,6 +2,7 @@ package org.baeldung.service;
 
 import com.google.common.base.Strings;
 import com.maxmind.geoip2.DatabaseReader;
+import com.maxmind.geoip2.exception.AddressNotFoundException;
 import com.maxmind.geoip2.exception.GeoIp2Exception;
 import com.maxmind.geoip2.model.CityResponse;
 import org.baeldung.persistence.dao.DeviceMetadataRepository;
@@ -61,7 +62,7 @@ public class DeviceService {
         DeviceMetadata existingDevice = findExistingDevice(user.getId(), deviceDetails, location);
 
         if (Objects.isNull(existingDevice)) {
-            unknownDeviceNotification(deviceDetails, location, ip, user.getEmail(), request.getLocale());
+            //unknownDeviceNotification(deviceDetails, location, ip, user.getEmail(), request.getLocale());
 
             DeviceMetadata deviceMetadata = new DeviceMetadata();
             deviceMetadata.setUserId(user.getId());
@@ -110,13 +111,15 @@ public class DeviceService {
 
         InetAddress ipAddress = InetAddress.getByName(ip);
 
-        CityResponse cityResponse = databaseReader.city(ipAddress);
-        if (Objects.nonNull(cityResponse) &&
-                Objects.nonNull(cityResponse.getCity()) &&
-                !Strings.isNullOrEmpty(cityResponse.getCity().getName())) {
+        try {
+            CityResponse cityResponse = databaseReader.city(ipAddress);
+            if (Objects.nonNull(cityResponse) &&
+                    Objects.nonNull(cityResponse.getCity()) &&
+                    !Strings.isNullOrEmpty(cityResponse.getCity().getName())) {
 
-            location = cityResponse.getCity().getName();
-        }
+                location = cityResponse.getCity().getName();
+            }
+        } catch (AddressNotFoundException ignored) { }
 
         return location;
     }

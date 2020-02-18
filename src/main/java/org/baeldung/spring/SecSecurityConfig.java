@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -20,6 +21,7 @@ import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.RememberMeServices;
@@ -27,13 +29,16 @@ import org.springframework.security.web.authentication.logout.LogoutSuccessHandl
 import org.springframework.security.web.authentication.rememberme.InMemoryTokenRepositoryImpl;
 
 @Configuration
+@Order(2)
 @ComponentScan(basePackages = { "org.baeldung.security" })
 // @ImportResource({ "classpath:webSecurityConfig.xml" })
-@EnableWebSecurity
 public class SecSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private UserDetailsService userDetailsService;
+
+    @Autowired
+    private AuthenticationEntryPoint authenticationEntryPoint;
 
     @Autowired
     private AuthenticationSuccessHandler myAuthenticationSuccessHandler;
@@ -84,7 +89,14 @@ public class SecSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/invalidSession*").anonymous()
                 .antMatchers("/user/updatePassword*","/user/savePassword*","/updatePassword*").hasAuthority("CHANGE_PASSWORD_PRIVILEGE")
                 .anyRequest().hasAuthority("READ_PRIVILEGE")
+            .and()
+            .sessionManagement()
+                .invalidSessionUrl("/invalidSession.html")
+                .maximumSessions(1)
+                .sessionRegistry(sessionRegistry())
                 .and()
+                .sessionFixation().none()
+            .and()
             .formLogin()
                 .loginPage("/login")
                 .defaultSuccessUrl("/homepage.html")
@@ -92,12 +104,7 @@ public class SecSecurityConfig extends WebSecurityConfigurerAdapter {
                 .successHandler(myAuthenticationSuccessHandler)
                 .failureHandler(authenticationFailureHandler)
                 .authenticationDetailsSource(authenticationDetailsSource)
-            .permitAll()
-                .and()
-            .sessionManagement()
-                .invalidSessionUrl("/invalidSession.html")
-                .maximumSessions(1).sessionRegistry(sessionRegistry()).and()
-                .sessionFixation().none()
+                .permitAll()
             .and()
             .logout()
                 .logoutSuccessHandler(myLogoutSuccessHandler)
@@ -105,9 +112,11 @@ public class SecSecurityConfig extends WebSecurityConfigurerAdapter {
                 .logoutSuccessUrl("/logout.html?logSucc=true")
                 .deleteCookies("JSESSIONID")
                 .permitAll()
-             .and()
-                .rememberMe().rememberMeServices(rememberMeServices()).key("theKey");
-    // @formatter:on
+            .and()
+            .rememberMe()
+                .rememberMeServices(rememberMeServices())
+                .key("theKey");
+        // @formatter:on
     }
 
     // beans
