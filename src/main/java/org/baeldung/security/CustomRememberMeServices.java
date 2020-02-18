@@ -35,6 +35,7 @@ public class CustomRememberMeServices extends PersistentTokenBasedRememberMeServ
         super(key, userDetailsService, tokenRepository);
         this.tokenRepository = tokenRepository;
         this.key = key;
+        this.setCookieName("me-token");
     }
 
     @Override
