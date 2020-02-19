@@ -14,14 +14,12 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.RememberMeServices;
@@ -29,16 +27,13 @@ import org.springframework.security.web.authentication.logout.LogoutSuccessHandl
 import org.springframework.security.web.authentication.rememberme.InMemoryTokenRepositoryImpl;
 
 @Configuration
-@Order(2)
+@Order(99)
 @ComponentScan(basePackages = { "org.baeldung.security" })
 // @ImportResource({ "classpath:webSecurityConfig.xml" })
 public class SecSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private UserDetailsService userDetailsService;
-
-    @Autowired
-    private AuthenticationEntryPoint authenticationEntryPoint;
 
     @Autowired
     private AuthenticationSuccessHandler myAuthenticationSuccessHandler;
@@ -59,7 +54,6 @@ public class SecSecurityConfig extends WebSecurityConfigurerAdapter {
         super();
     }
 
-    
     @Bean
     @Override
     public AuthenticationManager authenticationManagerBean() throws Exception {
@@ -82,12 +76,14 @@ public class SecSecurityConfig extends WebSecurityConfigurerAdapter {
         http
             .csrf().disable()
             .authorizeRequests()
-                .antMatchers("/login*","/login*", "/logout*", "/signin/**", "/signup/**", "/customLogin",
+                .antMatchers("/login*", "/logout*", "/signin/**", "/signup/**", "/customLogin",
                         "/user/registration*", "/registrationConfirm*", "/expiredAccount*", "/registration*",
-                        "/badUser*", "/user/resendRegistrationToken*" ,"/forgetPassword*", "/user/resetPassword*",
-                        "/user/changePassword*", "/emailError*", "/resources/**","/old/user/registration*","/successRegister*","/qrcode*").permitAll()
+                        "/badUser*", "/user/resendRegistrationToken*", "/forgetPassword*", "/user/resetPassword*",
+                        "/user/changePassword*", "/emailError*", "/resources/**", "/old/user/registration*",
+                        "/successRegister*", "/qrcode*").permitAll()
+                .antMatchers("/error").permitAll()
                 .antMatchers("/invalidSession*").anonymous()
-                .antMatchers("/user/updatePassword*","/user/savePassword*","/updatePassword*").hasAuthority("CHANGE_PASSWORD_PRIVILEGE")
+                .antMatchers("/user/updatePassword*", "/user/savePassword*", "/updatePassword*").hasAuthority("CHANGE_PASSWORD_PRIVILEGE")
                 .anyRequest().hasAuthority("READ_PRIVILEGE")
             .and()
             .sessionManagement()
@@ -144,4 +140,5 @@ public class SecSecurityConfig extends WebSecurityConfigurerAdapter {
         CustomRememberMeServices rememberMeServices = new CustomRememberMeServices("theKey", userDetailsService, new InMemoryTokenRepositoryImpl());
         return rememberMeServices;
     }
+
 }
