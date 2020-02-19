@@ -26,14 +26,13 @@ public class OAuth2ResourceServerSecurityConfig extends WebSecurityConfigurerAda
 		// @formatter:off
 		http.antMatcher("/api/**")
 				.csrf().disable()
+				.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
 				.authorizeRequests(authorizeRequests ->
 						authorizeRequests
 								.antMatchers("/*/login*", "/*/signup*", "/*/refresh*").permitAll()
 								.antMatchers("/*/oper/**").hasAuthority("SCOPE_oper")
 								.anyRequest().authenticated()
 				)
-				.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-				.and()
 				.oauth2ResourceServer(oauth2ResourceServer ->
 						oauth2ResourceServer
 								.jwt(jwt ->
